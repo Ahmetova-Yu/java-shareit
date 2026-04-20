@@ -8,6 +8,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,16 +20,20 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(Long userId, ItemDto itemDto) {
-        userService.getById(userId);
+        try {
+            userService.getById(userId);
+        } catch (NoSuchElementException e) {
+            throw new NoSuchElementException("User not found with id: " + userId);
+        }
 
         if (itemDto.getName() == null || itemDto.getName().isBlank()) {
-            throw new RuntimeException("Item name cannot be empty");
+            throw new IllegalArgumentException("Item name cannot be empty");
         }
         if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) {
-            throw new RuntimeException("Item description cannot be empty");
+            throw new IllegalArgumentException("Item description cannot be empty");
         }
         if (itemDto.getAvailable() == null) {
-            throw new RuntimeException("Item available status cannot be null");
+            throw new IllegalArgumentException("Item available status cannot be null");
         }
 
         Item item = itemMapper.toEntity(itemDto, userId);
@@ -38,10 +43,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
-        userService.getById(userId);
+        try {
+            userService.getById(userId);
+        } catch (NoSuchElementException e) {
+            throw new NoSuchElementException("User not found with id: " + userId);
+        }
 
         Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new NoSuchElementException("Item not found with id: " + itemId));
 
         if (!existingItem.getOwnerId().equals(userId)) {
             throw new RuntimeException("Only owner can edit the item");
@@ -55,13 +64,17 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getById(Long itemId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new NoSuchElementException("Item not found with id: " + itemId));
         return itemMapper.toDto(item);
     }
 
     @Override
     public List<ItemDto> getAllByOwner(Long userId) {
-        userService.getById(userId);
+        try {
+            userService.getById(userId);
+        } catch (NoSuchElementException e) {
+            throw new NoSuchElementException("User not found with id: " + userId);
+        }
         return itemRepository.findAllByOwnerId(userId).stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());

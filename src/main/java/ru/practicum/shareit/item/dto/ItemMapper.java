@@ -16,7 +16,7 @@ public class ItemMapper {
         if (itemDto == null) {
             return null;
         }
-        return new Item(itemDto.getId(), itemDto.getName(), itemDto.getDescription(),
+        return new Item(null, itemDto.getName(), itemDto.getDescription(),
                 itemDto.getAvailable(), ownerId);
     }
 

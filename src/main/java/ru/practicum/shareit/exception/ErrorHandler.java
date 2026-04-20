@@ -14,15 +14,18 @@ public class ErrorHandler {
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleNoSuchElementException(NoSuchElementException e) {
-        return Map.of("Ошибка", e.getMessage());
+        return Map.of("error", e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return Map.of("error", e.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> handleRuntimeException(RuntimeException e) {
-        if (e.getMessage().contains("not found") || e.getMessage().contains("Не найден")) {
-            return Map.of("Ошибка", e.getMessage());
-        }
-        return Map.of("Ошибка", e.getMessage());
+        return Map.of("error", e.getMessage());
     }
 }

@@ -7,6 +7,7 @@ import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +32,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto update(Long id, UserDto userDto) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
 
         if (userDto.getEmail() != null && !userDto.getEmail().equals(existingUser.getEmail())) {
             if (userRepository.existsByEmailAndIdNot(userDto.getEmail(), id)) {
@@ -51,7 +52,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getById(Long id) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
         return userMapper.toDto(existingUser);
     }
 
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
+            throw new NoSuchElementException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }
