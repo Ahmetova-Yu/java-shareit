@@ -9,6 +9,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,13 +18,20 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+    );
+
     @Override
     public UserDto create(UserDto userDto) {
         if (userDto.getEmail() == null) {
-            throw new IllegalArgumentException("Email cannot be null");
+            throw new IllegalArgumentException("Email не может быть пустым");
+        }
+        if (!isValidEmail(userDto.getEmail())) {
+            throw new IllegalArgumentException("Неверный формат email");
         }
         if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new DuplicateEmailException("User with this email already exists");
+            throw new DuplicateEmailException("Пользователь с таким email уже существует");
         }
         User user = userMapper.toEntity(userDto);
         User savedUser = userRepository.save(user);
@@ -33,11 +41,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto update(Long id, UserDto userDto) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
+                .orElseThrow(() -> new NoSuchElementException("Пользователь не найден с id: " + id));
 
         if (userDto.getEmail() != null && !userDto.getEmail().equals(existingUser.getEmail())) {
+            if (!isValidEmail(userDto.getEmail())) {
+                throw new IllegalArgumentException("Неверный формат email");
+            }
             if (userRepository.existsByEmailAndIdNot(userDto.getEmail(), id)) {
-                throw new DuplicateEmailException("User with this email already exists");
+                throw new DuplicateEmailException("Пользователь с таким email уже существует");
             }
             existingUser.setEmail(userDto.getEmail());
         }
@@ -53,7 +64,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getById(Long id) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
+                .orElseThrow(() -> new NoSuchElementException("Пользователь не найден с id: " + id));
         return userMapper.toDto(existingUser);
     }
 
@@ -67,8 +78,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new NoSuchElementException("User not found with id: " + id);
+            throw new NoSuchElementException("Пользователь не найден с id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    private boolean isValidEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+        return EMAIL_PATTERN.matcher(email).matches();
     }
 }

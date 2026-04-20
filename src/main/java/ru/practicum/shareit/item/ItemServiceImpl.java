@@ -24,17 +24,17 @@ public class ItemServiceImpl implements ItemService {
         try {
             userService.getById(userId);
         } catch (NoSuchElementException e) {
-            throw new NoSuchElementException("User not found with id: " + userId);
+            throw new NoSuchElementException("Пользователь не найден с id: " + userId);
         }
 
         if (itemDto.getName() == null || itemDto.getName().isBlank()) {
-            throw new IllegalArgumentException("Item name cannot be empty");
+            throw new IllegalArgumentException("Название вещи не может быть пустым");
         }
         if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) {
-            throw new IllegalArgumentException("Item description cannot be empty");
+            throw new IllegalArgumentException("Описание вещи не может быть пустым");
         }
         if (itemDto.getAvailable() == null) {
-            throw new IllegalArgumentException("Item available status cannot be null");
+            throw new IllegalArgumentException("Статус доступности вещи не может быть пустым");
         }
 
         Item item = itemMapper.toEntity(itemDto, userId);
@@ -47,14 +47,14 @@ public class ItemServiceImpl implements ItemService {
         try {
             userService.getById(userId);
         } catch (NoSuchElementException e) {
-            throw new NoSuchElementException("User not found with id: " + userId);
+            throw new NoSuchElementException("Пользователь не найден с id: " + userId);
         }
 
         Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NoSuchElementException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new NoSuchElementException("Вещь не найдена с id: " + itemId));
 
         if (!existingItem.getOwnerId().equals(userId)) {
-            throw new ForbiddenException("Only owner can edit the item");
+            throw new ForbiddenException("Редактировать вещь может только владелец");
         }
 
         itemMapper.updateEntity(existingItem, itemDto);
@@ -65,7 +65,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getById(Long itemId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NoSuchElementException("Item not found with id: " + itemId));
+                .orElseThrow(() -> new NoSuchElementException("Вещь не найдена с id: " + itemId));
         return itemMapper.toDto(item);
     }
 
@@ -74,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
         try {
             userService.getById(userId);
         } catch (NoSuchElementException e) {
-            throw new NoSuchElementException("User not found with id: " + userId);
+            throw new NoSuchElementException("Пользователь не найден с id: " + userId);
         }
         return itemRepository.findAllByOwnerId(userId).stream()
                 .map(itemMapper::toDto)
