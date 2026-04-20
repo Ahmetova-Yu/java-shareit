@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
-
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
     private final UserService userService;
@@ -21,16 +20,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto create(Long userId, ItemDto itemDto) {
         userService.getById(userId);
-
-        if (itemDto.getName() == null || itemDto.getName().isBlank()) {
-            throw new RuntimeException("Item name cannot be empty");
-        }
-        if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) {
-            throw new RuntimeException("Item description cannot be empty");
-        }
-        if (itemDto.getAvailable() == null) {
-            throw new RuntimeException("Item available status cannot be null");
-        }
 
         Item item = itemMapper.toEntity(itemDto, userId);
         Item savedItem = itemRepository.save(item);
@@ -44,7 +33,7 @@ public class ItemServiceImpl implements ItemService {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
 
-        if (!existingItem.getId().equals(userId)) {
+        if (!existingItem.getOwnerId().equals(userId)) {
             throw new RuntimeException("Only owner can edit the item");
         }
 

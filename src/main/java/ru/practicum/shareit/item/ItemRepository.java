@@ -15,7 +15,6 @@ public class ItemRepository {
         if (item.getId() == null) {
             item.setId(nextId++);
         }
-
         items.put(item.getId(), item);
         return item;
     }
@@ -26,7 +25,7 @@ public class ItemRepository {
 
     public List<Item> findAllByOwnerId(Long ownerId) {
         return items.values().stream()
-                .filter(item -> item.getId().equals(ownerId))
+                .filter(item -> ownerId.equals(item.getOwnerId()))
                 .collect(Collectors.toList());
     }
 
@@ -44,6 +43,10 @@ public class ItemRepository {
 
     public boolean existsById(Long id) {
         return items.containsKey(id);
+    }
+
+    public void deleteById(Long id) {
+        items.remove(id);
     }
 
     public void clear() {

@@ -9,7 +9,6 @@ public class UserMapper {
         if (user == null) {
             return null;
         }
-
         return new UserDto(user.getId(), user.getName(), user.getEmail());
     }
 
@@ -17,7 +16,15 @@ public class UserMapper {
         if (userDto == null) {
             return null;
         }
-
         return new User(userDto.getId(), userDto.getName(), userDto.getEmail());
+    }
+
+    public void updateEntity(User existingUser, UserDto userDto) {
+        if (userDto.getName() != null) {
+            existingUser.setName(userDto.getName());
+        }
+        if (userDto.getEmail() != null) {
+            existingUser.setEmail(userDto.getEmail());
+        }
     }
 }

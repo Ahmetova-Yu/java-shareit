@@ -3,9 +3,7 @@ package ru.practicum.shareit.user;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class UserRepository {
@@ -13,8 +11,9 @@ public class UserRepository {
     private long nextId = 1;
 
     public User save(User user) {
-        if (user.getId() == null) user.setId(nextId++);
-
+        if (user.getId() == null) {
+            user.setId(nextId++);
+        }
         users.put(user.getId(), user);
         return user;
     }
@@ -23,8 +22,8 @@ public class UserRepository {
         return Optional.ofNullable(users.get(id));
     }
 
-    public Map<Long, User> findAll() {
-        return users;
+    public Collection<User> findAll() {
+        return users.values();
     }
 
     public void deleteById(Long id) {
@@ -33,6 +32,16 @@ public class UserRepository {
 
     public boolean existsById(Long id) {
         return users.containsKey(id);
+    }
+
+    public boolean existsByEmail(String email) {
+        return users.values().stream()
+                .anyMatch(user -> user.getEmail().equals(email));
+    }
+
+    public boolean existsByEmailAndIdNot(String email, Long id) {
+        return users.values().stream()
+                .anyMatch(user -> user.getEmail().equals(email) && !user.getId().equals(id));
     }
 
     public void clear() {

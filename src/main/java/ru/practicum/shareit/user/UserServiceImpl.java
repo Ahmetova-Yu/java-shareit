@@ -17,42 +17,42 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(UserDto userDto) {
+        if (userRepository.existsByEmail(userDto.getEmail())) {
+            throw new RuntimeException("Пользователь с таким email уже существует");
+        }
         User user = userMapper.toEntity(userDto);
         User savedUser = userRepository.save(user);
-
         return userMapper.toDto(savedUser);
     }
 
     @Override
     public UserDto update(Long id, UserDto userDto) {
-        User existingUser = userRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Не найден пользователь с id: " + id));
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Не найден пользователь с id: " + id));
 
-        if (userDto.getName() != null) {
-            existingUser.setName(userDto.getName());
+        if (userDto.getEmail() != null && !userDto.getEmail().equals(existingUser.getEmail())) {
+            if (userRepository.existsByEmailAndIdNot(userDto.getEmail(), id)) {
+                throw new RuntimeException("Пользователь с таким email уже существует");
+            }
         }
 
-        if (userDto.getEmail() != null) {
-            existingUser.setEmail(userDto.getEmail());
-        }
-
+        userMapper.updateEntity(existingUser, userDto);
         User updatedUser = userRepository.save(existingUser);
         return userMapper.toDto(updatedUser);
     }
 
     @Override
     public UserDto getById(Long id) {
-        User existingUser = userRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Не найден пользователь с id: " + id));
-
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Не найден пользователь с id: " + id));
         return userMapper.toDto(existingUser);
     }
 
     @Override
     public List<UserDto> getAll() {
-        return userRepository.findAll().values().stream()
+        return userRepository.findAll().stream()
                 .map(userMapper::toDto)
-                .collect(Collectors.toUnmodifiableList());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -60,7 +60,6 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("Не найден пользователь с id: " + id);
         }
-
         userRepository.deleteById(id);
     }
 }

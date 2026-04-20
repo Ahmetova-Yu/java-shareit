@@ -6,15 +6,18 @@ import ru.practicum.shareit.item.model.Item;
 @Component
 public class ItemMapper {
     public ItemDto toDto(Item item) {
-        if (item == null) return null;
-
+        if (item == null) {
+            return null;
+        }
         return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable());
     }
 
-    public Item toEntity(ItemDto itemDto, Long userId) {
-        if (itemDto == null) return null;
-
-        return new Item(itemDto.getId(), itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), userId);
+    public Item toEntity(ItemDto itemDto, Long ownerId) {
+        if (itemDto == null) {
+            return null;
+        }
+        return new Item(itemDto.getId(), itemDto.getName(), itemDto.getDescription(),
+                itemDto.getAvailable(), ownerId);
     }
 
     public void updateEntity(Item existingItem, ItemDto itemDto) {
