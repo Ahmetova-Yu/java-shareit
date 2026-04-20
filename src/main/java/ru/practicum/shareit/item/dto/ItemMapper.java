@@ -16,4 +16,16 @@ public class ItemMapper {
 
         return new Item(itemDto.getId(), itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), userId);
     }
+
+    public void updateEntity(Item existingItem, ItemDto itemDto) {
+        if (itemDto.getName() != null) {
+            existingItem.setName(itemDto.getName());
+        }
+        if (itemDto.getDescription() != null) {
+            existingItem.setDescription(itemDto.getDescription());
+        }
+        if (itemDto.getAvailable() != null) {
+            existingItem.setAvailable(itemDto.getAvailable());
+        }
+    }
 }
