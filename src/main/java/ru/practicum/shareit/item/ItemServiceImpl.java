@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -53,7 +54,7 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NoSuchElementException("Item not found with id: " + itemId));
 
         if (!existingItem.getOwnerId().equals(userId)) {
-            throw new RuntimeException("Only owner can edit the item");
+            throw new ForbiddenException("Only owner can edit the item");
         }
 
         itemMapper.updateEntity(existingItem, itemDto);
