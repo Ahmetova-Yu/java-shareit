@@ -1,7 +1,9 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -17,8 +19,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(UserDto userDto) {
+        if (userDto.getEmail() == null) {
+            throw new RuntimeException("Email cannot be null");
+        }
         if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new RuntimeException("Пользователь с таким email уже существует");
+            throw new RuntimeException("User with this email already exists");
         }
         User user = userMapper.toEntity(userDto);
         User savedUser = userRepository.save(user);
@@ -28,15 +33,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto update(Long id, UserDto userDto) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Не найден пользователь с id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         if (userDto.getEmail() != null && !userDto.getEmail().equals(existingUser.getEmail())) {
             if (userRepository.existsByEmailAndIdNot(userDto.getEmail(), id)) {
-                throw new RuntimeException("Пользователь с таким email уже существует");
+                throw new RuntimeException("User with this email already exists");
             }
+            existingUser.setEmail(userDto.getEmail());
         }
 
-        userMapper.updateEntity(existingUser, userDto);
+        if (userDto.getName() != null) {
+            existingUser.setName(userDto.getName());
+        }
+
         User updatedUser = userRepository.save(existingUser);
         return userMapper.toDto(updatedUser);
     }
@@ -44,7 +53,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getById(Long id) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Не найден пользователь с id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         return userMapper.toDto(existingUser);
     }
 
@@ -58,7 +67,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Не найден пользователь с id: " + id);
+            throw new RuntimeException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }

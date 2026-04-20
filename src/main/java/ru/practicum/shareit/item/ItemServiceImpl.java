@@ -21,6 +21,16 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(Long userId, ItemDto itemDto) {
         userService.getById(userId);
 
+        if (itemDto.getName() == null || itemDto.getName().isBlank()) {
+            throw new RuntimeException("Item name cannot be empty");
+        }
+        if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) {
+            throw new RuntimeException("Item description cannot be empty");
+        }
+        if (itemDto.getAvailable() == null) {
+            throw new RuntimeException("Item available status cannot be null");
+        }
+
         Item item = itemMapper.toEntity(itemDto, userId);
         Item savedItem = itemRepository.save(item);
         return itemMapper.toDto(savedItem);
@@ -59,6 +69,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
         return itemRepository.searchAvailable(text).stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());
