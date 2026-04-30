@@ -63,9 +63,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto getById(Long itemId) {
+    public ItemDto getById(Long userId, Long itemId) {
+        userService.getById(userId);
+
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NoSuchElementException("Вещь не найдена с id: " + itemId));
+                .orElseThrow(() -> new RuntimeException("Вещь не найдена с id: " + itemId));
         return itemMapper.toDto(item);
     }
 
@@ -82,10 +84,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(Long userId, String text) {
         if (text == null || text.isBlank()) {
             return List.of();
         }
+
+        userService.getById(userId);
+
         return itemRepository.searchAvailable(text).stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());
