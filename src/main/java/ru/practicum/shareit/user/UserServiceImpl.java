@@ -24,6 +24,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(UserDto userDto) {
+        if (userDto.getName() == null || userDto.getName().isBlank()) {
+            throw new IllegalArgumentException("Имя не может быть пустым");
+        }
+
         if (userDto.getEmail() == null) {
             throw new IllegalArgumentException("Email не может быть пустым");
         }
