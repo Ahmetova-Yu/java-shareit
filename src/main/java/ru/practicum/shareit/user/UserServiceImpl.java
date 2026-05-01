@@ -93,4 +93,11 @@ public class UserServiceImpl implements UserService {
         }
         return EMAIL_PATTERN.matcher(email).matches();
     }
+
+    @Override
+    public void checkExists(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new NoSuchElementException("Пользователь с id: " + id + " не найден");
+        }
+    }
 }

@@ -21,11 +21,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(Long userId, ItemDto itemDto) {
-        try {
-            userService.getById(userId);
-        } catch (NoSuchElementException e) {
-            throw new NoSuchElementException("Пользователь не найден с id: " + userId);
-        }
+        userService.checkExists(userId);
 
         if (itemDto.getName() == null || itemDto.getName().isBlank()) {
             throw new IllegalArgumentException("Название вещи не может быть пустым");
@@ -44,11 +40,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
-        try {
-            userService.getById(userId);
-        } catch (NoSuchElementException e) {
-            throw new NoSuchElementException("Пользователь не найден с id: " + userId);
-        }
+        userService.checkExists(userId);
 
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NoSuchElementException("Вещь не найдена с id: " + itemId));
@@ -73,11 +65,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getAllByOwner(Long userId) {
-        try {
-            userService.getById(userId);
-        } catch (NoSuchElementException e) {
-            throw new NoSuchElementException("Пользователь не найден с id: " + userId);
-        }
+        userService.checkExists(userId);
+
         return itemRepository.findAllByOwnerId(userId).stream()
                 .map(itemMapper::toDto)
                 .collect(Collectors.toList());
