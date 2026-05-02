@@ -49,6 +49,10 @@ public class UserServiceImpl implements UserService {
         }
 
         if (userDto.getName() != null) {
+            if (userDto.getName().isBlank()) {
+                throw new IllegalArgumentException("Имя не может быть пустым или состоять из пробелов");
+            }
+
             existingUser.setName(userDto.getName());
         }
 
