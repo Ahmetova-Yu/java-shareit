@@ -24,19 +24,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto create(UserDto userDto) {
-        if (userDto.getName() == null || userDto.getName().isBlank()) {
-            throw new IllegalArgumentException("Имя не может быть пустым");
-        }
-
-        if (userDto.getEmail() == null) {
-            throw new IllegalArgumentException("Email не может быть пустым");
-        }
-        if (!isValidEmail(userDto.getEmail())) {
-            throw new IllegalArgumentException("Неверный формат email");
-        }
         if (userRepository.existsByEmail(userDto.getEmail())) {
             throw new DuplicateEmailException("Пользователь с таким email уже существует");
         }
+
         User user = userMapper.toEntity(userDto);
         User savedUser = userRepository.save(user);
         return userMapper.toDto(savedUser);

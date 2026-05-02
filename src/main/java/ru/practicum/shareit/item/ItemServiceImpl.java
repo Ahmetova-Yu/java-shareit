@@ -23,16 +23,6 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(Long userId, ItemDto itemDto) {
         userService.checkExists(userId);
 
-        if (itemDto.getName() == null || itemDto.getName().isBlank()) {
-            throw new IllegalArgumentException("Название вещи не может быть пустым");
-        }
-        if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) {
-            throw new IllegalArgumentException("Описание вещи не может быть пустым");
-        }
-        if (itemDto.getAvailable() == null) {
-            throw new IllegalArgumentException("Статус доступности вещи не может быть пустым");
-        }
-
         Item item = itemMapper.toEntity(itemDto, userId);
         Item savedItem = itemRepository.save(item);
         return itemMapper.toDto(savedItem);
