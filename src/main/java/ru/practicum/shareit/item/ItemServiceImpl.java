@@ -65,13 +65,13 @@ public class ItemServiceImpl implements ItemService {
         if (item.getOwnerId().equals(userId)) {
             List<Booking> lastBookings = bookingRepository.findLastBooking(itemId, now);
             if (!lastBookings.isEmpty()) {
-                Booking last = lastBookings.get(0);
+                Booking last = lastBookings.getFirst();
                 result.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId()));
             }
 
             List<Booking> nextBookings = bookingRepository.findNextBooking(itemId, now);
             if (!nextBookings.isEmpty()) {
-                Booking next = nextBookings.get(0);
+                Booking next = nextBookings.getFirst();
                 result.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId()));
             }
         }
@@ -102,13 +102,13 @@ public class ItemServiceImpl implements ItemService {
 
                     List<Booking> lastBookings = bookingRepository.findLastBooking(item.getId(), now);
                     if (!lastBookings.isEmpty()) {
-                        Booking last = lastBookings.get(0);
+                        Booking last = lastBookings.getFirst();
                         dto.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId()));
                     }
 
                     List<Booking> nextBookings = bookingRepository.findNextBooking(item.getId(), now);
                     if (!nextBookings.isEmpty()) {
-                        Booking next = nextBookings.get(0);
+                        Booking next = nextBookings.getFirst();
                         dto.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId()));
                     }
 
