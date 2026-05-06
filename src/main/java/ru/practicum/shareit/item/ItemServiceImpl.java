@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
@@ -62,10 +63,17 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime now = LocalDateTime.now();
 
         if (item.getOwnerId().equals(userId)) {
-            bookingRepository.findLastBooking(itemId, now)
-                    .ifPresent(last -> result.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId())));
-            bookingRepository.findNextBooking(itemId, now)
-                    .ifPresent(next -> result.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId())));
+            List<Booking> lastBookings = bookingRepository.findLastBooking(itemId, now);
+            if (!lastBookings.isEmpty()) {
+                Booking last = lastBookings.get(0);
+                result.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId()));
+            }
+
+            List<Booking> nextBookings = bookingRepository.findNextBooking(itemId, now);
+            if (!nextBookings.isEmpty()) {
+                Booking next = nextBookings.get(0);
+                result.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId()));
+            }
         }
 
         List<CommentDto> comments = commentRepository.findByItemIdOrderByCreatedAsc(itemId).stream()
@@ -91,10 +99,18 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.findByOwnerIdOrderByIdAsc(userId).stream()
                 .map(item -> {
                     ItemBookingDto dto = itemMapper.toBookingDto(item);
-                    bookingRepository.findLastBooking(item.getId(), now)
-                            .ifPresent(last -> dto.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId())));
-                    bookingRepository.findNextBooking(item.getId(), now)
-                            .ifPresent(next -> dto.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId())));
+
+                    List<Booking> lastBookings = bookingRepository.findLastBooking(item.getId(), now);
+                    if (!lastBookings.isEmpty()) {
+                        Booking last = lastBookings.get(0);
+                        dto.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId()));
+                    }
+
+                    List<Booking> nextBookings = bookingRepository.findNextBooking(item.getId(), now);
+                    if (!nextBookings.isEmpty()) {
+                        Booking next = nextBookings.get(0);
+                        dto.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId()));
+                    }
 
                     List<CommentDto> comments = commentRepository.findByItemIdOrderByCreatedAsc(item.getId()).stream()
                             .map(comment -> {

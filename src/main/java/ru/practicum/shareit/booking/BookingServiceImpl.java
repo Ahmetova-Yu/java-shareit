@@ -125,7 +125,7 @@ public class BookingServiceImpl implements BookingService {
                 bookings = bookingRepository.findByBookerId(userId, sort);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findCurrentByBookerId(userId, now, sort);
+                bookings = bookingRepository.findCurrentByBookerId(userId, now);
                 break;
             case PAST:
                 bookings = bookingRepository.findByBookerIdAndEndBefore(userId, now, sort);
@@ -157,30 +157,32 @@ public class BookingServiceImpl implements BookingService {
 
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByOwnerId(userId, sort);
+                bookings = bookingRepository.findAllByOwnerId(userId);
                 break;
             case CURRENT:
-                bookings = bookingRepository.findCurrentByOwnerId(userId, now, sort);
+                bookings = bookingRepository.findCurrentByOwnerId(userId, now);
                 break;
             case PAST:
-                bookings = bookingRepository.findPastByOwnerId(userId, now, sort);
+                bookings = bookingRepository.findPastByOwnerId(userId, now);
                 break;
             case FUTURE:
-                bookings = bookingRepository.findFutureByOwnerId(userId, now, sort);
+                bookings = bookingRepository.findFutureByOwnerId(userId, now);
                 break;
             case WAITING:
-                bookings = bookingRepository.findAllByOwnerId(userId, sort).stream()
+                bookings = bookingRepository.findAllByOwnerId(userId).stream()
                         .filter(b -> b.getStatus() == BookingStatus.WAITING)
                         .collect(Collectors.toList());
                 break;
             case REJECTED:
-                bookings = bookingRepository.findAllByOwnerId(userId, sort).stream()
+                bookings = bookingRepository.findAllByOwnerId(userId).stream()
                         .filter(b -> b.getStatus() == BookingStatus.REJECTED)
                         .collect(Collectors.toList());
                 break;
             default:
-                bookings = bookingRepository.findAllByOwnerId(userId, sort);
+                bookings = bookingRepository.findAllByOwnerId(userId);
         }
+        
+        bookings.sort((b1, b2) -> b2.getStart().compareTo(b1.getStart()));
 
         return enrichWithItemAndBooker(bookings);
     }

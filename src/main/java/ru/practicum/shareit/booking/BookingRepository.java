@@ -15,7 +15,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookerId(Long bookerId, Sort sort);
 
     @Query("SELECT b FROM Booking b WHERE b.bookerId = :bookerId AND b.start < :now AND b.end > :now")
-    List<Booking> findCurrentByBookerId(@Param("bookerId") Long bookerId, @Param("now") LocalDateTime now, Sort sort);
+    List<Booking> findCurrentByBookerId(@Param("bookerId") Long bookerId, @Param("now") LocalDateTime now);
 
     List<Booking> findByBookerIdAndEndBefore(Long bookerId, LocalDateTime now, Sort sort);
 
@@ -24,29 +24,27 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookerIdAndStatus(Long bookerId, BookingStatus status, Sort sort);
 
     @Query("SELECT b FROM Booking b WHERE b.itemId IN (SELECT i.id FROM Item i WHERE i.ownerId = :ownerId)")
-    List<Booking> findAllByOwnerId(@Param("ownerId") Long ownerId, Sort sort);
+    List<Booking> findAllByOwnerId(@Param("ownerId") Long ownerId);
 
     @Query("SELECT b FROM Booking b WHERE b.itemId IN (SELECT i.id FROM Item i WHERE i.ownerId = :ownerId) AND b.start < :now AND b.end > :now")
-    List<Booking> findCurrentByOwnerId(@Param("ownerId") Long ownerId, @Param("now") LocalDateTime now, Sort sort);
+    List<Booking> findCurrentByOwnerId(@Param("ownerId") Long ownerId, @Param("now") LocalDateTime now);
 
     @Query("SELECT b FROM Booking b WHERE b.itemId IN (SELECT i.id FROM Item i WHERE i.ownerId = :ownerId) AND b.end < :now")
-    List<Booking> findPastByOwnerId(@Param("ownerId") Long ownerId, @Param("now") LocalDateTime now, Sort sort);
+    List<Booking> findPastByOwnerId(@Param("ownerId") Long ownerId, @Param("now") LocalDateTime now);
 
     @Query("SELECT b FROM Booking b WHERE b.itemId IN (SELECT i.id FROM Item i WHERE i.ownerId = :ownerId) AND b.start > :now")
-    List<Booking> findFutureByOwnerId(@Param("ownerId") Long ownerId, @Param("now") LocalDateTime now, Sort sort);
+    List<Booking> findFutureByOwnerId(@Param("ownerId") Long ownerId, @Param("now") LocalDateTime now);
 
-    List<Booking> findByItemIdInAndStatus(List<Long> itemIds, BookingStatus status, Sort sort);
+    @Query("SELECT b FROM Booking b WHERE b.itemId = :itemId AND b.start < :now AND b.status = 'APPROVED' ORDER BY b.start DESC")
+    List<Booking> findLastBooking(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
 
-    @Query(value = "SELECT * FROM bookings b WHERE b.item_id = :itemId AND b.start_date < :now ORDER BY b.start_date DESC LIMIT 1", nativeQuery = true)
-    Optional<Booking> findLastBooking(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
-
-    @Query(value = "SELECT * FROM bookings b WHERE b.item_id = :itemId AND b.start_date > :now AND b.status = 'APPROVED' ORDER BY b.start_date ASC LIMIT 1", nativeQuery = true)
-    Optional<Booking> findNextBooking(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
+    @Query("SELECT b FROM Booking b WHERE b.itemId = :itemId AND b.start > :now AND b.status = 'APPROVED' ORDER BY b.start ASC")
+    List<Booking> findNextBooking(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
 
     @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.bookerId = :userId AND b.itemId = :itemId AND b.end < :now AND b.status = 'APPROVED'")
     boolean existsCompletedBooking(@Param("userId") Long userId, @Param("itemId") Long itemId, @Param("now") LocalDateTime now);
 
-    @Query("SELECT b FROM Booking b WHERE b.itemId = :itemId AND b.status = 'APPROVED' AND ((b.start < :end AND b.end > :start))")
+    @Query("SELECT b FROM Booking b WHERE b.itemId = :itemId AND b.status = 'APPROVED' AND b.start < :end AND b.end > :start")
     List<Booking> findConflictingBookings(@Param("itemId") Long itemId,
                                           @Param("start") LocalDateTime start,
                                           @Param("end") LocalDateTime end);
