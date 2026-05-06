@@ -18,6 +18,7 @@ import ru.practicum.shareit.user.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -120,27 +121,20 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
 
-        switch (state) {
-            case ALL:
-                bookings = bookingRepository.findByBookerId(userId, sort);
-                break;
-            case CURRENT:
-                bookings = bookingRepository.findCurrentByBookerId(userId, now);
-                break;
-            case PAST:
-                bookings = bookingRepository.findByBookerIdAndEndBefore(userId, now, sort);
-                break;
-            case FUTURE:
-                bookings = bookingRepository.findByBookerIdAndStartAfter(userId, now, sort);
-                break;
-            case WAITING:
-                bookings = bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, sort);
-                break;
-            case REJECTED:
-                bookings = bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, sort);
-                break;
-            default:
-                bookings = bookingRepository.findByBookerId(userId, sort);
+        if (Objects.requireNonNull(state) == BookingState.ALL) {
+            bookings = bookingRepository.findByBookerId(userId, sort);
+        } else if (state == BookingState.CURRENT) {
+            bookings = bookingRepository.findCurrentByBookerId(userId, now);
+        } else if (state == BookingState.PAST) {
+            bookings = bookingRepository.findByBookerIdAndEndBefore(userId, now, sort);
+        } else if (state == BookingState.FUTURE) {
+            bookings = bookingRepository.findByBookerIdAndStartAfter(userId, now, sort);
+        } else if (state == BookingState.WAITING) {
+            bookings = bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, sort);
+        } else if (state == BookingState.REJECTED) {
+            bookings = bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, sort);
+        } else {
+            bookings = bookingRepository.findByBookerId(userId, sort);
         }
 
         return enrichWithItemAndBooker(bookings);
@@ -151,37 +145,29 @@ public class BookingServiceImpl implements BookingService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
 
-        Sort sort = Sort.by(Sort.Direction.DESC, "start");
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
 
-        switch (state) {
-            case ALL:
-                bookings = bookingRepository.findAllByOwnerId(userId);
-                break;
-            case CURRENT:
-                bookings = bookingRepository.findCurrentByOwnerId(userId, now);
-                break;
-            case PAST:
-                bookings = bookingRepository.findPastByOwnerId(userId, now);
-                break;
-            case FUTURE:
-                bookings = bookingRepository.findFutureByOwnerId(userId, now);
-                break;
-            case WAITING:
-                bookings = bookingRepository.findAllByOwnerId(userId).stream()
-                        .filter(b -> b.getStatus() == BookingStatus.WAITING)
-                        .collect(Collectors.toList());
-                break;
-            case REJECTED:
-                bookings = bookingRepository.findAllByOwnerId(userId).stream()
-                        .filter(b -> b.getStatus() == BookingStatus.REJECTED)
-                        .collect(Collectors.toList());
-                break;
-            default:
-                bookings = bookingRepository.findAllByOwnerId(userId);
+        if (Objects.requireNonNull(state) == BookingState.ALL) {
+            bookings = bookingRepository.findAllByOwnerId(userId);
+        } else if (state == BookingState.CURRENT) {
+            bookings = bookingRepository.findCurrentByOwnerId(userId, now);
+        } else if (state == BookingState.PAST) {
+            bookings = bookingRepository.findPastByOwnerId(userId, now);
+        } else if (state == BookingState.FUTURE) {
+            bookings = bookingRepository.findFutureByOwnerId(userId, now);
+        } else if (state == BookingState.WAITING) {
+            bookings = bookingRepository.findAllByOwnerId(userId).stream()
+                    .filter(b -> b.getStatus() == BookingStatus.WAITING)
+                    .collect(Collectors.toList());
+        } else if (state == BookingState.REJECTED) {
+            bookings = bookingRepository.findAllByOwnerId(userId).stream()
+                    .filter(b -> b.getStatus() == BookingStatus.REJECTED)
+                    .collect(Collectors.toList());
+        } else {
+            bookings = bookingRepository.findAllByOwnerId(userId);
         }
-        
+
         bookings.sort((b1, b2) -> b2.getStart().compareTo(b1.getStart()));
 
         return enrichWithItemAndBooker(bookings);
