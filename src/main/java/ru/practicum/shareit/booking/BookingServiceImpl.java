@@ -40,7 +40,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(requestDto.getItemId())
                 .orElseThrow(() -> new NoSuchElementException("Вещь не найдена"));
 
-        if (item.getOwnerId().equals(userId)) {
+        if (item.getOwner().getId().equals(userId)) {
             throw new IllegalArgumentException("Нельзя бронировать собственную вещь");
         }
 
@@ -63,10 +63,10 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Выбранные даты уже заняты");
         }
 
-        Booking booking = bookingMapper.toEntity(requestDto, userId);
+        Booking booking = bookingMapper.toEntity(requestDto, booker, item);
         Booking saved = bookingRepository.save(booking);
 
-        return bookingMapper.toDtoWithItemAndBooker(saved, item, booker);
+        return bookingMapper.toDto(saved);
     }
 
     @Override
@@ -75,13 +75,13 @@ public class BookingServiceImpl implements BookingService {
         if (approved == null) {
             throw new ValidationException("Параметр approved обязателен");
         }
+
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NoSuchElementException("Бронирование не найдено"));
 
-        Item item = itemRepository.findById(booking.getItemId())
-                .orElseThrow(() -> new NoSuchElementException("Вещь не найдена"));
+        Item item = booking.getItem();
 
-        if (!item.getOwnerId().equals(userId)) {
+        if (!item.getOwner().getId().equals(userId)) {
             throw new IllegalArgumentException("Только владелец может подтвердить/отклонить бронирование");
         }
 
@@ -92,10 +92,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         Booking updated = bookingRepository.save(booking);
 
-        User booker = userRepository.findById(booking.getBookerId())
-                .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
-
-        return bookingMapper.toDtoWithItemAndBooker(updated, item, booker);
+        return bookingMapper.toDto(updated);
     }
 
     @Override
@@ -103,17 +100,13 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NoSuchElementException("Бронирование не найдено"));
 
-        Item item = itemRepository.findById(booking.getItemId())
-                .orElseThrow(() -> new NoSuchElementException("Вещь не найдена"));
+        Item item = booking.getItem();
 
-        if (!booking.getBookerId().equals(userId) && !item.getOwnerId().equals(userId)) {
+        if (!booking.getBooker().getId().equals(userId) && !item.getOwner().getId().equals(userId)) {
             throw new IllegalArgumentException("Нет доступа к этому бронированию");
         }
 
-        User booker = userRepository.findById(booking.getBookerId())
-                .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
-
-        return bookingMapper.toDtoWithItemAndBooker(booking, item, booker);
+        return bookingMapper.toDto(booking);
     }
 
     @Override
@@ -141,7 +134,9 @@ public class BookingServiceImpl implements BookingService {
             bookings = bookingRepository.findByBookerId(userId, sort);
         }
 
-        return enrichWithItemAndBooker(bookings);
+        return bookings.stream()
+                .map(bookingMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -152,7 +147,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
 
-        if (state == BookingState.ALL) {
+        if (Objects.requireNonNull(state) == BookingState.ALL) {
             bookings = bookingRepository.findAllByOwnerId(userId);
         } else if (state == BookingState.CURRENT) {
             bookings = bookingRepository.findCurrentByOwnerId(userId, now);
@@ -170,18 +165,8 @@ public class BookingServiceImpl implements BookingService {
 
         bookings.sort((b1, b2) -> b2.getStart().compareTo(b1.getStart()));
 
-        return enrichWithItemAndBooker(bookings);
-    }
-
-    private List<BookingDto> enrichWithItemAndBooker(List<Booking> bookings) {
         return bookings.stream()
-                .map(booking -> {
-                    Item item = itemRepository.findById(booking.getItemId())
-                            .orElseThrow(() -> new NoSuchElementException("Вещь не найдена"));
-                    User booker = userRepository.findById(booking.getBookerId())
-                            .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
-                    return bookingMapper.toDtoWithItemAndBooker(booking, item, booker);
-                })
+                .map(bookingMapper::toDto)
                 .collect(Collectors.toList());
     }
 }

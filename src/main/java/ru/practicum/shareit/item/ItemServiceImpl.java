@@ -11,6 +11,8 @@ import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,12 +28,15 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final ItemMapper itemMapper;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public ItemDto create(Long userId, ItemDto itemDto) {
         userService.checkExists(userId);
-        Item item = itemMapper.toEntity(itemDto, userId);
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
+        Item item = itemMapper.toEntity(itemDto, owner);
         return itemMapper.toDto(itemRepository.save(item));
     }
 
@@ -42,7 +47,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NoSuchElementException("Вещь не найдена"));
 
-        if (!item.getOwnerId().equals(userId)) {
+        if (!item.getOwner().getId().equals(userId)) {
             throw new IllegalArgumentException("Только владелец может редактировать");
         }
 
@@ -62,17 +67,17 @@ public class ItemServiceImpl implements ItemService {
         ItemBookingDto result = itemMapper.toBookingDto(item);
         LocalDateTime now = LocalDateTime.now();
 
-        if (item.getOwnerId().equals(userId)) {
+        if (item.getOwner().getId().equals(userId)) {
             List<Booking> lastBookings = bookingRepository.findLastBooking(itemId, now);
             if (!lastBookings.isEmpty()) {
                 Booking last = lastBookings.getFirst();
-                result.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId()));
+                result.setLastBooking(new BookingShortDto(last.getId(), last.getBooker().getId()));
             }
 
             List<Booking> nextBookings = bookingRepository.findNextBooking(itemId, now);
             if (!nextBookings.isEmpty()) {
                 Booking next = nextBookings.getFirst();
-                result.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId()));
+                result.setNextBooking(new BookingShortDto(next.getId(), next.getBooker().getId()));
             }
         }
 
@@ -81,7 +86,7 @@ public class ItemServiceImpl implements ItemService {
                     CommentDto dto = new CommentDto();
                     dto.setId(comment.getId());
                     dto.setText(comment.getText());
-                    dto.setAuthorName(userService.getById(comment.getAuthorId()).getName());
+                    dto.setAuthorName(comment.getAuthor().getName());
                     dto.setCreated(comment.getCreated());
                     return dto;
                 })
@@ -103,13 +108,13 @@ public class ItemServiceImpl implements ItemService {
                     List<Booking> lastBookings = bookingRepository.findLastBooking(item.getId(), now);
                     if (!lastBookings.isEmpty()) {
                         Booking last = lastBookings.getFirst();
-                        dto.setLastBooking(new BookingShortDto(last.getId(), last.getBookerId()));
+                        dto.setLastBooking(new BookingShortDto(last.getId(), last.getBooker().getId()));
                     }
 
                     List<Booking> nextBookings = bookingRepository.findNextBooking(item.getId(), now);
                     if (!nextBookings.isEmpty()) {
                         Booking next = nextBookings.getFirst();
-                        dto.setNextBooking(new BookingShortDto(next.getId(), next.getBookerId()));
+                        dto.setNextBooking(new BookingShortDto(next.getId(), next.getBooker().getId()));
                     }
 
                     List<CommentDto> comments = commentRepository.findByItemIdOrderByCreatedAsc(item.getId()).stream()
@@ -117,7 +122,7 @@ public class ItemServiceImpl implements ItemService {
                                 CommentDto commentDto = new CommentDto();
                                 commentDto.setId(comment.getId());
                                 commentDto.setText(comment.getText());
-                                commentDto.setAuthorName(userService.getById(comment.getAuthorId()).getName());
+                                commentDto.setAuthorName(comment.getAuthor().getName());
                                 commentDto.setCreated(comment.getCreated());
                                 return commentDto;
                             })
@@ -141,8 +146,12 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public CommentDto addComment(Long userId, Long itemId, CommentRequestDto commentRequestDto) {
         userService.checkExists(userId);
+
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NoSuchElementException("Вещь не найдена"));
+
+        User author = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
 
         LocalDateTime now = LocalDateTime.now();
         if (!bookingRepository.existsCompletedBooking(userId, itemId, now)) {
@@ -151,8 +160,8 @@ public class ItemServiceImpl implements ItemService {
 
         Comment comment = new Comment();
         comment.setText(commentRequestDto.getText());
-        comment.setItemId(itemId);
-        comment.setAuthorId(userId);
+        comment.setItem(item);
+        comment.setAuthor(author);
         comment.setCreated(now);
 
         Comment saved = commentRepository.save(comment);
@@ -160,7 +169,7 @@ public class ItemServiceImpl implements ItemService {
         CommentDto result = new CommentDto();
         result.setId(saved.getId());
         result.setText(saved.getText());
-        result.setAuthorName(userService.getById(userId).getName());
+        result.setAuthorName(saved.getAuthor().getName());
         result.setCreated(saved.getCreated());
         return result;
     }
