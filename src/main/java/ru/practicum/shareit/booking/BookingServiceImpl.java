@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto approve(Long userId, Long bookingId, Boolean approved) {
+        if (approved == null) {
+            throw new ValidationException("Параметр approved обязателен");
+        }
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NoSuchElementException("Бронирование не найдено"));
 
@@ -148,7 +152,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
 
-        if (Objects.requireNonNull(state) == BookingState.ALL) {
+        if (state == BookingState.ALL) {
             bookings = bookingRepository.findAllByOwnerId(userId);
         } else if (state == BookingState.CURRENT) {
             bookings = bookingRepository.findCurrentByOwnerId(userId, now);
@@ -157,13 +161,9 @@ public class BookingServiceImpl implements BookingService {
         } else if (state == BookingState.FUTURE) {
             bookings = bookingRepository.findFutureByOwnerId(userId, now);
         } else if (state == BookingState.WAITING) {
-            bookings = bookingRepository.findAllByOwnerId(userId).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.WAITING)
-                    .collect(Collectors.toList());
+            bookings = bookingRepository.findAllByOwnerIdAndStatus(userId, BookingStatus.WAITING);
         } else if (state == BookingState.REJECTED) {
-            bookings = bookingRepository.findAllByOwnerId(userId).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.REJECTED)
-                    .collect(Collectors.toList());
+            bookings = bookingRepository.findAllByOwnerIdAndStatus(userId, BookingStatus.REJECTED);
         } else {
             bookings = bookingRepository.findAllByOwnerId(userId);
         }
