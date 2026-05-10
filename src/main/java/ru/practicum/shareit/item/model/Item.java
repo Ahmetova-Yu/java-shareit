@@ -29,8 +29,6 @@ public class Item {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    //dc
-
     @Column(name = "request_id")
     private Long requestId;
 }
