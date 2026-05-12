@@ -24,22 +24,22 @@ public class UserClient extends BaseClient {
     }
 
     public ResponseEntity<Object> create(UserDto userDto) {
-        return post("", null, userDto);
+        return post("", userDto);
     }
 
     public ResponseEntity<Object> update(Long userId, UserDto userDto) {
-        return patch("/" + userId, null, userDto);
+        return patch("/" + userId, userDto);
     }
 
     public ResponseEntity<Object> getById(Long userId) {
-        return get("/" + userId, null);
+        return get("/" + userId);
     }
 
     public ResponseEntity<Object> getAll() {
-        return get("", null);
+        return get("");
     }
 
     public ResponseEntity<Object> delete(Long userId) {
-        return delete("/" + userId, userId);
+        return delete("/" + userId);
     }
 }
