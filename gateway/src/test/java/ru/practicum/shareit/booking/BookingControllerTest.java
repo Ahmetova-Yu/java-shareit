@@ -40,6 +40,18 @@ class BookingControllerTest {
     }
 
     @Test
+    void shouldReturnBadRequestWhenStartIsInPast() throws Exception {
+        BookItemRequestDto requestDto = new BookItemRequestDto(1L,
+                LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 2L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldReturnBadRequestWhenStartIsNull() throws Exception {
         BookItemRequestDto requestDto = new BookItemRequestDto(1L, null, LocalDateTime.now().plusDays(2));
 
