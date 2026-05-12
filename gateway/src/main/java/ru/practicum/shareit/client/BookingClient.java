@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.client;
 
 import java.util.Map;
 
@@ -12,7 +12,6 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
-import ru.practicum.shareit.client.BaseClient;
 
 @Service
 public class BookingClient extends BaseClient {
