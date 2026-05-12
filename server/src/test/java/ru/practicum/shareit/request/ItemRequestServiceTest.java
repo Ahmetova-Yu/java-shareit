@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserRepository;
@@ -28,6 +29,9 @@ class ItemRequestServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private ItemRepository itemRepository;  // ← ДОБАВИТЬ ЭТОТ МОК
+
     @InjectMocks
     private ItemRequestServiceImpl requestService;
 
@@ -46,6 +50,7 @@ class ItemRequestServiceTest {
     void shouldCreateRequest() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(requestRepository.save(any(ItemRequest.class))).thenReturn(request);
+        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of());  // ← ДОБАВИТЬ
 
         var result = requestService.create(1L, requestDto);
 
@@ -58,6 +63,7 @@ class ItemRequestServiceTest {
     void shouldGetUserRequests() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(requestRepository.findByRequestorIdOrderByCreatedDesc(1L)).thenReturn(List.of(request));
+        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of());  // ← ДОБАВИТЬ
 
         var result = requestService.getUserRequests(1L);
 
