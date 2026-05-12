@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request;
+package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -7,52 +7,46 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.client.ItemRequestClient;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.booking.dto.BookItemRequestDto;
+import ru.practicum.shareit.client.BookingClient;
+
+import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ItemRequestController.class)
-class ItemRequestControllerTest {
+@WebMvcTest(BookingController.class)
+class BookingControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private ItemRequestClient itemRequestClient;
+    private BookingClient bookingClient;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
-    void shouldCreateRequest() throws Exception {
-        ItemRequestDto requestDto = new ItemRequestDto("Need a drill");
+    void shouldCreateBooking() throws Exception {
+        BookItemRequestDto requestDto = new BookItemRequestDto(1L,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
 
-        mockMvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", 1L)
+        mockMvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 2L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void shouldReturnBadRequestWhenDescriptionIsBlank() throws Exception {
-        ItemRequestDto requestDto = new ItemRequestDto("");
+    void shouldReturnBadRequestWhenStartIsNull() throws Exception {
+        BookItemRequestDto requestDto = new BookItemRequestDto(1L, null, LocalDateTime.now().plusDays(2));
 
-        mockMvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", 1L)
+        mockMvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 2L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void shouldReturnBadRequestWhenNoDescription() throws Exception {
-        mockMvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
                 .andExpect(status().isBadRequest());
     }
 }
