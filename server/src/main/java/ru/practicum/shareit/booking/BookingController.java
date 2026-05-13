@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<BookingDto> create(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                             @RequestBody BookingRequestDto requestDto) {
+                                             @Valid @RequestBody BookingRequestDto requestDto) {
         BookingDto created = bookingService.create(userId, requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }

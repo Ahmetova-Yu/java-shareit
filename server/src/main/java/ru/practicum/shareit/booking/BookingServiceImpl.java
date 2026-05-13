@@ -46,6 +46,10 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Вещь недоступна для бронирования");
         }
 
+        if (requestDto.getStart() == null || requestDto.getEnd() == null) {
+            throw new IllegalArgumentException("Даты начала и окончания обязательны");
+        }
+
         if (requestDto.getEnd().isBefore(requestDto.getStart()) || requestDto.getEnd().equals(requestDto.getStart())) {
             throw new IllegalArgumentException("Дата окончания должна быть позже даты начала");
         }
@@ -62,6 +66,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Booking booking = bookingMapper.toEntity(requestDto, booker, item);
+        booking.setStatus(BookingStatus.WAITING);
         Booking saved = bookingRepository.save(booking);
 
         return bookingMapper.toDto(saved);
@@ -149,6 +154,7 @@ public class BookingServiceImpl implements BookingService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
 
+        Sort sort = Sort.by(Sort.Direction.DESC, "start");
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
 
