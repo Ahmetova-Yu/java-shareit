@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +36,8 @@ public class BookingController {
                                            @RequestBody @Valid BookItemRequestDto requestDto) {
         log.info("Creating booking {}, userId={}", requestDto, userId);
         ResponseEntity<Object> response = bookingClient.bookItem(userId, requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response.getBody());
+
+        return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
     }
 
     @GetMapping("/{bookingId}")
