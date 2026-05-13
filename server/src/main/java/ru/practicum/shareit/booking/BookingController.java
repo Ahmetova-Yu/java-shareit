@@ -24,29 +24,33 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto approve(@RequestHeader("X-Sharer-User-Id") Long userId,
-                              @PathVariable Long bookingId,
-                              @RequestParam Boolean approved) {
-        return bookingService.approve(userId, bookingId, approved);
+    public ResponseEntity<BookingDto> approve(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                              @PathVariable Long bookingId,
+                                              @RequestParam Boolean approved) {
+        BookingDto updated = bookingService.approve(userId, bookingId, approved);
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/{bookingId}")
-    public BookingDto getById(@RequestHeader("X-Sharer-User-Id") Long userId,
-                              @PathVariable Long bookingId) {
-        return bookingService.getById(userId, bookingId);
+    public ResponseEntity<BookingDto> getById(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                              @PathVariable Long bookingId) {
+        BookingDto booking = bookingService.getById(userId, bookingId);
+        return ResponseEntity.ok(booking);
     }
 
     @GetMapping
-    public List<BookingDto> getAllByBooker(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                           @RequestParam(defaultValue = "ALL") String state) {
+    public ResponseEntity<List<BookingDto>> getAllByBooker(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                           @RequestParam(defaultValue = "ALL") String state) {
         BookingState bookingState = BookingState.valueOf(state.toUpperCase());
-        return bookingService.getAllByBooker(userId, bookingState);
+        List<BookingDto> bookings = bookingService.getAllByBooker(userId, bookingState);
+        return ResponseEntity.ok(bookings);
     }
 
     @GetMapping("/owner")
-    public List<BookingDto> getAllByOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                          @RequestParam(defaultValue = "ALL") String state) {
+    public ResponseEntity<List<BookingDto>> getAllByOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                          @RequestParam(defaultValue = "ALL") String state) {
         BookingState bookingState = BookingState.valueOf(state.toUpperCase());
-        return bookingService.getAllByOwner(userId, bookingState);
+        List<BookingDto> bookings = bookingService.getAllByOwner(userId, bookingState);
+        return ResponseEntity.ok(bookings);
     }
 }
