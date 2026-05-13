@@ -175,8 +175,6 @@ public class BookingServiceImpl implements BookingService {
                 bookings = bookingRepository.findAllByOwnerId(userId);
         }
 
-        bookings.sort((b1, b2) -> b2.getStart().compareTo(b1.getStart()));
-
         return bookings.stream()
                 .map(bookingMapper::toDto)
                 .collect(Collectors.toList());
