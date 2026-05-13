@@ -36,7 +36,7 @@ class BookingControllerTest {
                         .header("X-Sharer-User-Id", 2L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
